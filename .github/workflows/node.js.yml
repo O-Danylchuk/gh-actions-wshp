@@ -1,0 +1,41 @@
+name: Node.js CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: "Build and Test"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build --if-present
+      - run: npm test
+      - name: Vitest Coverage Reporte
+        uses: davelosert/vitest-coverage-report-action@v2.7.0
+        with:
+            github-token: ${{ github.token }} # optional, default is ${{ github.token }}
+          # The path to the vite config file. By default, looks for paths by the pattern "vite[st].config.{t|mt|ct|j|mj|cj}s".
+            vite-config-path: vite.config.ts # optional
+          # The path to the json summary file. Uses "coverage/coverage-summary.json" by default.
+            json-summary-path: coverage/coverage-summary.json # optional, default is coverage/coverage-summary.json
+          # The path to the json summary file of the previous run to get trend indicators.
+            json-summary-compare-path: coverage/coverage-final.json # optional
+          # The path to the json final file. Uses "coverage/coverage-final.json" by default.
+            json-final-path: coverage/coverage-final.json # optional, default is coverage/coverage-final.json
+                
